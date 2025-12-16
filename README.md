@@ -4,14 +4,6 @@ This extension is intended to enable fair and transparent benchmarking, while is
 All baseline methods are evaluated using identical data splits, input settings, and evaluation metrics.
 
 Quantitative Performance Comparison
-Model	IoU (mean ± std)	F1 (mean ± std)	Acc (mean ± std)
-Robust U-Net	0.9645 ± 0.003	0.9819 ± 0.002	0.9810 ± 0.002
-DeepLabV3+	0.9639 ± 0.005	0.9816 ± 0.003	0.9806 ± 0.003
-YOLO-SEG	0.9407 ± 0.076	0.9676 ± 0.046	0.9684 ± 0.040
-WaterNet(New)	0.9647 ± 0.005	0.9820 ± 0.003	0.9811 ± 0.003
-MSWNet(New)	0.9658 ± 0.004	0.9826 ± 0.002	0.9817 ± 0.002
-HRNet-Water(New)	0.9471 ± 0.050	0.9721 ± 0.029	0.9717 ± 0.026
-SegFormer-Lite(New)	0.9625 ± 0.004	0.9809 ± 0.002	0.9799 ± 0.002
 
 | Model            | IoU (mean ± std)   | F1 (mean ± std)    | Acc (mean ± std)   |
 | ---------------- | ------------------ | ------------------ | ------------------ |
