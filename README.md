@@ -1,3 +1,9 @@
+Update from 12/16/2025: The open-source repository has been extended to include additional baseline models for more comprehensive comparison. 
+Specifically, recent water-specific segmentation methods, including WaterNet, MSWNet, HRNet-Water, and SegFormer-Lite, are incorporated under a unified training and evaluation protocol. 
+This extension is intended to enable fair and transparent benchmarking, while isolating the effect of the proposed robust training constraints from architectural differences. 
+All baseline methods are evaluated using identical data splits, input settings, and evaluation metrics.
+
+
 ICASSP-2026 Robust U-Net for Coastal Water Segmentation
 
 Coastal water segmentation with a strong, practical baseline comparing Robust U-Net, DeepLabV3+, and YOLO-SEG on coastal satellite imagery with Labelme annotations.
