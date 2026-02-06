@@ -15,12 +15,10 @@ Quantitative Performance Comparison (*: New added SOTA algorithms)
 
 Experiments were performed on a Windows 10 Professional (64-bit) workstation with an Intel 12th Gen Core i7-12700KF processor (3.60 GHz) and 32 GB of system memory.
 
-ICASSP-2026 Robust U-Net for Coastal Water Segmentation
+EUSIPCO-2026 Robust U-Net for Coastal Water Segmentation
 
 Coastal water segmentation with a strong, practical baseline comparing Robust U-Net, DeepLabV3+, and YOLO-SEG on coastal satellite imagery with Labelme annotations.
 This repo includes a clean PyTorch re-implementation of the models, training/evaluation loops, and plotting scripts for curves and final comparisons.
-
-📄 Associated paper draft: “Multi-Modal Robust Enhancement for Coastal Water Segmentation: A Systematic HSV-Guided Framework” (ICASSP 2026 submission)
 
 ------------------------------------------------------
 Coastal erosion is a critical global challenge, intensified by climate change, sea-level rise, and increasingly frequent extreme weather events. Shoreline retreat directly threatens infrastructure, local communities, and ecosystems, leading to loss of land, damage to property, and long-term socio-economic risks.
@@ -90,7 +88,7 @@ How to Cite
   year         = {2025},
   publisher    = {GitHub},
   howpublished = {\url{https://github.com/UofgCoastline/ICASSP-2026-Robust-Unet}},
-  note         = {Code and data for the ICASSP 2026 paper}
+  note         = {Code and data for the EUSIPCO 2026 paper}
 }
 
 
