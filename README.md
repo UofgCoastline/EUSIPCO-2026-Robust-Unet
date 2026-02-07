@@ -1,17 +1,21 @@
-Update from 12/16/2025 (Added PY file for extended baseline comparison - Extended_Baseline_Comparison.py) : The open-source repository has been extended to include additional baseline models for more comprehensive comparison. 
+Update from 12/16/2025 (Added PY file for extended baseline comparison - Extended_Baseline_Comparison.py, comne.py, and comne1.py) : The open-source repository has been extended to include additional baseline models for more comprehensive comparison. 
 Specifically, recent water-specific segmentation methods, including WaterNet, MSWNet, HRNet-Water, and SegFormer-Lite, are incorporated under a unified training and evaluation protocol. 
 This extension is intended to enable fair and transparent benchmarking, while isolating the effect of the proposed robust training constraints from architectural differences. 
 All baseline methods are evaluated using identical data splits, input settings, and evaluation metrics.
 
 Quantitative Performance Comparison (*: New added SOTA algorithms)
 
-| Model            | IoU (mean ± std)   | F1 (mean ± std)    | Acc (mean ± std)   |
-| ---------------- | ------------------ | ------------------ | ------------------ |
-| **Robust U-Net** | **0.9645 ± 0.003** | **0.9819 ± 0.002** | **0.9810 ± 0.002** |
-| DeepLabV3+       | 0.9639 ± 0.005     | 0.9816 ± 0.003     | 0.9806 ± 0.003     |
-| YOLO-SEG         | 0.9407 ± 0.076     | 0.9676 ± 0.046     | 0.9684 ± 0.040     |
-| HRNet-Water*      | 0.9471 ± 0.050     | 0.9721 ± 0.029     | 0.9717 ± 0.026     |
-| SegFormer-Lite*   | 0.9625 ± 0.004     | 0.9809 ± 0.002     | 0.9799 ± 0.002     |
+| Model              | IoU (mean ± std)   | F1 (mean ± std)    | Acc (mean ± std)   |
+|--------------------|-------------------|-------------------|-------------------|
+| **Robust U-Net**   | **0.9645 ± 0.003**| **0.9819 ± 0.002**| **0.9810 ± 0.002**|
+| DeepLabV3+         | 0.9639 ± 0.005    | 0.9816 ± 0.003    | 0.9806 ± 0.003    |
+| SegNet             | 0.9632 ± 0.0068   | 0.9812 ± 0.0036   | 0.9802 ± 0.0038   |
+| SegFormer-Lite*    | 0.9625 ± 0.004    | 0.9809 ± 0.002    | 0.9799 ± 0.002    |
+| PSPNet             | 0.9558 ± 0.0042   | 0.9774 ± 0.0022   | 0.9763 ± 0.0023   |
+| Fast-SCNN          | 0.9571 ± 0.0057   | 0.9781 ± 0.0030   | 0.9769 ± 0.0031   |
+| HRNet-Water*       | 0.9471 ± 0.050    | 0.9721 ± 0.029    | 0.9717 ± 0.026    |
+| YOLO-SEG           | 0.9407 ± 0.076    | 0.9676 ± 0.046    | 0.9684 ± 0.040    |
+| ENet               | 0.7843 ± 0.1166   | 0.8730 ± 0.0929   | 0.8639 ± 0.0721   |
 
 Experiments were performed on a Windows 10 Professional (64-bit) workstation with an Intel 12th Gen Core i7-12700KF processor (3.60 GHz) and 32 GB of system memory.
 
