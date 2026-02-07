@@ -1,4 +1,4 @@
-Update from 12/16/2025 (Added PY file for extended baseline comparison - Extended_Baseline_Comparison.py, comne.py, and comne1.py) : The open-source repository has been extended to include additional baseline models for more comprehensive comparison. 
+Update from 7/2/2025 (Added PY file for extended baseline comparison - Extended_Baseline_Comparison.py, comne.py, and comne1.py) : The open-source repository has been extended to include additional baseline models for more comprehensive comparison. 
 Specifically, recent water-specific segmentation methods, including WaterNet, MSWNet, HRNet-Water, and SegFormer-Lite, are incorporated under a unified training and evaluation protocol. 
 This extension is intended to enable fair and transparent benchmarking, while isolating the effect of the proposed robust training constraints from architectural differences. 
 All baseline methods are evaluated using identical data splits, input settings, and evaluation metrics.
