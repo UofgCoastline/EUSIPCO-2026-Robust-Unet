@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 海岸线检测算法对比: 5种高效遥感分割算法
-SegNet vs PSPNet vs Fast-SCNN vs LinkNet vs ENet
+SegNet vs PSPNet vs Fast-SCNN vs ENet
 """
 
 import os
@@ -299,7 +299,7 @@ class PSPNet(nn.Module):
         return torch.sigmoid(x)
 
 
-# ================================
+## ================================
 # 算法3: Fast-SCNN (Fast Segmentation Convolutional Neural Network)
 # ================================
 class DepthwiseSeparableConv(nn.Module):
@@ -340,6 +340,37 @@ class LearningToDownsample(nn.Module):
         return x
 
 
+class PyramidPoolingFastSCNN(nn.Module):
+    """金字塔池化模块 - Fast-SCNN专用版本"""
+
+    def __init__(self, in_channels, pool_sizes=[1, 2, 3, 6]):
+        super(PyramidPoolingFastSCNN, self).__init__()
+        self.pool_sizes = pool_sizes
+        # 确保输出通道数是4的倍数，方便后续处理
+        out_channels_per_branch = in_channels // 4
+
+        self.convs = nn.ModuleList([
+            nn.Sequential(
+                nn.AdaptiveAvgPool2d(pool_size),
+                nn.Conv2d(in_channels, out_channels_per_branch, 1),
+                nn.BatchNorm2d(out_channels_per_branch),
+                nn.ReLU(inplace=True)
+            )
+            for pool_size in pool_sizes
+        ])
+
+    def forward(self, x):
+        h, w = x.shape[2:]
+        out = [x]
+
+        for conv in self.convs:
+            pooled = conv(x)
+            pooled = F.interpolate(pooled, size=(h, w), mode='bilinear', align_corners=False)
+            out.append(pooled)
+
+        return torch.cat(out, dim=1)
+
+
 class GlobalFeatureExtractor(nn.Module):
     """全局特征提取器"""
 
@@ -351,8 +382,8 @@ class GlobalFeatureExtractor(nn.Module):
         self.block2 = self._make_bottleneck(64, 96, 3, 2)
         self.block3 = self._make_bottleneck(96, 128, 3, 1)
 
-        # Pyramid pooling
-        self.ppm = PyramidPooling(128, pool_sizes=[1, 2, 4])
+        # Pyramid pooling - 输出 128 + 32*4 = 256 通道
+        self.ppm = PyramidPoolingFastSCNN(128, pool_sizes=[1, 2, 3, 6])
 
     def _make_bottleneck(self, in_channels, out_channels, repeats, stride):
         layers = []
@@ -365,7 +396,7 @@ class GlobalFeatureExtractor(nn.Module):
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
-        x = self.ppm(x)
+        x = self.ppm(x)  # 输出256通道
         return x
 
 
@@ -430,7 +461,7 @@ class FastSCNN(nn.Module):
         # Learning to downsample: 1/8
         x_low = self.learning_to_downsample(x)
 
-        # Global feature extractor: 1/32 -> 1/8 with PPM
+        # Global feature extractor: 1/32 -> 1/8 with PPM (输出256通道)
         x_high = self.global_feature_extractor(x_low)
 
         # Feature fusion
@@ -446,117 +477,7 @@ class FastSCNN(nn.Module):
 
 
 # ================================
-# 算法4: LinkNet
-# ================================
-class LinkNetEncoder(nn.Module):
-    """LinkNet编码器块"""
-
-    def __init__(self, in_channels, out_channels, stride=1):
-        super(LinkNetEncoder, self).__init__()
-
-        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-
-        self.shortcut = nn.Sequential()
-        if stride != 1 or in_channels != out_channels:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False),
-                nn.BatchNorm2d(out_channels)
-            )
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
-        out = F.relu(out)
-        return out
-
-
-class LinkNetDecoder(nn.Module):
-    """LinkNet解码器块"""
-
-    def __init__(self, in_channels, out_channels):
-        super(LinkNetDecoder, self).__init__()
-
-        self.conv1 = nn.Conv2d(in_channels, in_channels // 4, 1, bias=False)
-        self.bn1 = nn.BatchNorm2d(in_channels // 4)
-
-        self.deconv = nn.ConvTranspose2d(in_channels // 4, in_channels // 4, 3,
-                                         stride=2, padding=1, output_padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(in_channels // 4)
-
-        self.conv2 = nn.Conv2d(in_channels // 4, out_channels, 1, bias=False)
-        self.bn3 = nn.BatchNorm2d(out_channels)
-
-    def forward(self, x):
-        out = F.relu(self.bn1(self.conv1(x)))
-        out = F.relu(self.bn2(self.deconv(out)))
-        out = F.relu(self.bn3(self.conv2(out)))
-        return out
-
-
-class LinkNet(nn.Module):
-    """LinkNet - 轻量级实时分割网络"""
-
-    def __init__(self, n_classes=1):
-        super(LinkNet, self).__init__()
-
-        # Initial block
-        self.init_conv = nn.Sequential(
-            nn.Conv2d(3, 64, 7, stride=2, padding=3, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(3, stride=2, padding=1)
-        )
-
-        # Encoder
-        self.encoder1 = LinkNetEncoder(64, 64)
-        self.encoder2 = LinkNetEncoder(64, 128, stride=2)
-        self.encoder3 = LinkNetEncoder(128, 256, stride=2)
-        self.encoder4 = LinkNetEncoder(256, 512, stride=2)
-
-        # Decoder
-        self.decoder4 = LinkNetDecoder(512, 256)
-        self.decoder3 = LinkNetDecoder(256, 128)
-        self.decoder2 = LinkNetDecoder(128, 64)
-        self.decoder1 = LinkNetDecoder(64, 64)
-
-        # Final deconv and classifier
-        self.final_deconv = nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1)
-        self.final_conv = nn.Sequential(
-            nn.Conv2d(32, 32, 3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(32, n_classes, 2, stride=2),
-        )
-
-    def forward(self, x):
-        # Initial
-        x = self.init_conv(x)
-
-        # Encoder
-        e1 = self.encoder1(x)
-        e2 = self.encoder2(e1)
-        e3 = self.encoder3(e2)
-        e4 = self.encoder4(e3)
-
-        # Decoder with skip connections
-        d4 = self.decoder4(e4) + e3
-        d3 = self.decoder3(d4) + e2
-        d2 = self.decoder2(d3) + e1
-        d1 = self.decoder1(d2)
-
-        # Final upsampling
-        out = self.final_deconv(d1)
-        out = self.final_conv(out)
-
-        return torch.sigmoid(out)
-
-
-# ================================
-# 算法5: ENet (Efficient Neural Network)
+# 算法4: ENet (Efficient Neural Network)
 # ================================
 class InitialBlock(nn.Module):
     """ENet初始块"""
@@ -903,7 +824,6 @@ def plot_training_curves(training_histories, save_path='./training_curves_rs.png
         'SegNet': '#4ECDC4',
         'PSPNet': '#45B7D1',
         'Fast-SCNN': '#96CEB4',
-        'LinkNet': '#FFEAA7',
         'ENet': '#DDA15E'
     }
 
@@ -979,7 +899,6 @@ def plot_comparison(results, save_path='./rs_comparison.png'):
         'SegNet': '#4ECDC4',
         'PSPNet': '#45B7D1',
         'Fast-SCNN': '#96CEB4',
-        'LinkNet': '#FFEAA7',
         'ENet': '#DDA15E'
     }
 
@@ -1034,7 +953,6 @@ def main():
         'SegNet': SegNet(n_classes=1).to(device),
         'PSPNet': PSPNet(n_classes=1).to(device),
         'Fast-SCNN': FastSCNN(n_classes=1).to(device),
-        'LinkNet': LinkNet(n_classes=1).to(device),
         'ENet': ENet(n_classes=1).to(device)
     }
 
